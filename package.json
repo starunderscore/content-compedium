@@ -1,0 +1,29 @@
+{
+  "name": "content-compendium",
+  "version": "1.0.0",
+  "description": "",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "electron": "electron electron/main.js",
+    "electron-dev": "concurrently \"npm run dev\" \"npm run electron\""
+  },
+  "author": "Michael Hunt (Star Underscore)",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "electron": "^35.0.0"
+  },
+  "dependencies": {
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.7",
+    "@mui/material": "^6.4.7",
+    "@mui/x-tree-view": "^7.26.0",
+    "next": "^15.2.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
