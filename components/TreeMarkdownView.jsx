@@ -126,10 +126,10 @@ const TreeMarkdownView = ({ folderPath, onBack }) => {
           onSelectedItemsChange={handleNodeSelect}
           sx={{ flexGrow: 1, maxWidth: 400, marginRight: 3 }}
         >
-          <Button variant="outlined" onClick={onBack} sx={{ mb: 3 }}>
+          {/* <Button variant="outlined" onClick={onBack} sx={{ mb: 3 }}>
             &lt;-- Back
           </Button>
-          <br />
+          <br /> */}
           {treeData ? renderTree(treeData) : null}
         </TreeView>
 

@@ -1,66 +1,80 @@
 // components/FolderSelectionView.jsx
-import React from 'react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+import React, { useState, useEffect, useCallback } from 'react';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import { useThemeSettings } from '../pages/_app'; // ✅ Import useThemeSettings hook
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import path from 'path'
 
-const FolderSelectionView = ({ onFolderSelect }) => { // ✅ Expecting onFolderSelect prop
-  const [selectedFolder, setSelectedFolder] = React.useState('');
-  // const fileInputRef = React.useRef(null); // ❌ No longer needed - remove file input ref
-  const { mode, toggleTheme } = useThemeSettings(); // ✅ Use the theme context
+const FolderSelectionView = ({ onFolderSelect }) => {
+  const [recentFolders, setRecentFolders] = useState([]);
 
-  const handleBrowseFolders = async () => { // ✅ Make handleBrowseFolders async
-    console.log("[FolderSelectionView] handleBrowseFolders clicked"); // Log!
+  useEffect(() => {
+    const loadRecentFolders = async () => {
+      try {
+        const folders = await window.electronAPI.getRecentFolders();
+        setRecentFolders(folders);
+      } catch (error) {
+        console.error("Failed to load recent folders:", error);
+      }
+    };
+    loadRecentFolders();
+  }, []);
+
+  const handleBrowseFolder = useCallback(async () => {
+    console.log("[FolderSelectionView] handleBrowseFolder CALLED");
     try {
-      const folderPath = await window.electronAPI.showOpenDialogForFolder(); // ✅ Call new preload function
-      console.log("[FolderSelectionView] Selected folder path from dialog:", folderPath); // Log!
-      if (folderPath) { // Check if a folder was actually selected (not canceled)
-        setSelectedFolder(folderPath); // Update local state
-        if (onFolderSelect) {
-          onFolderSelect(folderPath); // ✅ Call onFolderSelect prop with FULL folderPath!
-        }
-      } else {
-        console.log("[FolderSelectionView] No folder selected or dialog canceled.");
+      const folderPath = await window.electronAPI.showOpenDialogForFolder();
+      if (folderPath) {
+        onFolderSelect(folderPath); // ✅ Propagate folder path to HomePage
+        window.electronAPI.addRecentFolder(folderPath); // ✅ Add to recent folders on browse
+        window.electronAPI.saveLastFolderPath(folderPath); // ✅ SAVE LAST FOLDER PATH HERE on "Browse Folders..."
       }
     } catch (error) {
-      console.error("Error showing open dialog or selecting folder:", error);
+      console.error("Error in handleBrowseFolder:", error);
     }
-  };
+  }, [onFolderSelect]);
+
+
+  const handleRecentFolderSelect = useCallback((folderPath) => { // ✅ Handle recent folder selection
+    console.log("[FolderSelectionView] handleRecentFolderSelect CALLED with:", folderPath);
+    onFolderSelect(folderPath); // ✅ Propagate folder path to HomePage - ALREADY PRESENT
+    window.electronAPI.addRecentFolder(folderPath); // ✅ Move to top in recent folders - ALREADY PRESENT
+    window.electronAPI.saveLastFolderPath(folderPath); // ✅ SAVE LAST FOLDER PATH HERE also on recent folder select! - **[THIS IS THE FIX]**
+  }, [onFolderSelect]);
+
 
   return (
-    <Container
-      maxWidth="sm"
-      sx={{
-        width: "100%",
-        maxWidth: "800px",
-        m: "0 auto",
-      }}
-    >
-      <Box sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
-        {/* <Typography variant="h4" component="h2" gutterBottom>
-          Content Compendium
-        </Typography> */}
-        {/* <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-          Project Folder Selection
-        </Typography> */}
-      </Box>
-
-      <Box sx={{ m: 2, textAlign: 'center' }}>
-        <Button variant="contained" onClick={handleBrowseFolders}> {/* ✅ Now calls handleBrowseFolders */}
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        <Typography variant="h5" component="h2" gutterBottom>
+          Select a Project Folder
+        </Typography>
+        <Button variant="contained" color="primary" onClick={handleBrowseFolder}>
           Browse Folders...
         </Button>
-      </Box>
 
-      {/* --- Recent Folders Section (Optional for now) --- */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Recent Folders: (Optional - Future Feature)
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          (Recent folders list will appear here in a future version)
-        </Typography>
+        {recentFolders.length > 0 && (
+          <Box sx={{ width: '100%', mt: 3 }}>
+            <Typography variant="subtitle1" align="center" gutterBottom>
+              Recent Folders
+            </Typography>
+            <Grid container spacing={2} justifyContent="center">
+              {recentFolders.map((folderPath) => (
+                <Grid item key={folderPath} xs={12} sm={6} md={4}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => handleRecentFolderSelect(folderPath)} // ✅ Use handleRecentFolderSelect
+                  >
+                    {path.basename(folderPath)}
+                  </Button>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
       </Box>
     </Container>
   );

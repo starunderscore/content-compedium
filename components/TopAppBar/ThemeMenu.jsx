@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
+import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
@@ -16,9 +17,11 @@ const ThemeMenu = ({ mode, toggleTheme, syncWithOS, toggleSyncWithOS }) => {
 
   return (
     <>
-      <IconButton color="inherit" onClick={handleMenuOpen} aria-label="Theme options">
-        {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
-      </IconButton>
+      <Tooltip title="Choose Light or Dark Theme">
+        <IconButton color="inherit" onClick={handleMenuOpen} aria-label="Theme options">
+          {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
+      </Tooltip>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem
           onClick={() => {
