@@ -17,14 +17,14 @@ const Branding = ({ branding, homeLink }) => {
           color: "inherit", // ensure the link inherits the color
         }}
       >
-        <Box sx={{ mr: 1 }}>
+        {/* <Box sx={{ mr: 1 }}>
           <Image
             src="/logo/android-chrome-192x192.png"
             alt="Logo"
             width={35}
             height={35}
           />
-        </Box>
+        </Box> */}
         <Typography variant="h6" component="span" sx={{ color: "inherit" }}>
           {branding}
         </Typography>

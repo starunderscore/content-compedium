@@ -11,7 +11,7 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb'; // ✅ Import Lightbu
 import Tooltip from "@mui/material/Tooltip"; // ✅ Import Tooltip
 import AIPromptModal from './AIPromptModal'; // ✅ Import AIPromptModal
 
-const TopAppBar = ({ branding = "Slop Press", homeLink = "/" }) => {
+const TopAppBar = ({ branding = "Content Compendium", homeLink = "/" }) => {
   const { mode, toggleTheme, syncWithOS, toggleSyncWithOS } = useThemeSettings();
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false); // ✅ State for modal visibility
 
@@ -26,7 +26,7 @@ const TopAppBar = ({ branding = "Slop Press", homeLink = "/" }) => {
         <Toolbar
           sx={{
             width: "100%",
-            maxWidth: "800px",
+            maxWidth: "1180px",
             m: "0 auto",
           }}
         >

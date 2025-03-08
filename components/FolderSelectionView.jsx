@@ -30,23 +30,24 @@ const FolderSelectionView = ({ onFolderSelect }) => { // ✅ Expecting onFolderS
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container
+      maxWidth="sm"
+      sx={{
+        width: "100%",
+        maxWidth: "800px",
+        m: "0 auto",
+      }}
+    >
       <Box sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
-        <Typography variant="h4" component="h2" gutterBottom>
+        {/* <Typography variant="h4" component="h2" gutterBottom>
           Content Compendium
-        </Typography>
-        <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+        </Typography> */}
+        {/* <Typography variant="subtitle1" color="textSecondary" gutterBottom>
           Project Folder Selection
-        </Typography>
+        </Typography> */}
       </Box>
 
-      <Box sx={{ mb: 2, mt: 3 }}> {/* Added mt: 3 for more top margin */}
-        <Typography variant="body1">
-          Current Folder: <strong>{selectedFolder || 'None Selected'}</strong>
-        </Typography>
-      </Box>
-
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
+      <Box sx={{ m: 2, textAlign: 'center' }}>
         <Button variant="contained" onClick={handleBrowseFolders}> {/* ✅ Now calls handleBrowseFolders */}
           Browse Folders...
         </Button>
@@ -59,14 +60,6 @@ const FolderSelectionView = ({ onFolderSelect }) => { // ✅ Expecting onFolderS
         </Typography>
         <Typography variant="body2" color="textSecondary">
           (Recent folders list will appear here in a future version)
-        </Typography>
-      </Box>
-
-      <Box sx={{ mt: 4, textAlign: 'center', color: 'textSecondary' }}>
-        <Typography variant="body2">
-          Instructions: Use "Browse Folders..." to select your project's root folder.
-          <br />
-          Content Compendium will remember your last selected folder.
         </Typography>
       </Box>
     </Container>

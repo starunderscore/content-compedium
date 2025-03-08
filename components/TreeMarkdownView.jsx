@@ -104,17 +104,17 @@ const TreeMarkdownView = ({ folderPath, onBack }) => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h5" component="h2">
-          Project Content: {folderPath ? path.basename(folderPath) : 'No Folder Selected'}
-        </Typography>
-        <Button variant="outlined" onClick={onBack}>
-          &lt;-- Back to Folder Select
-        </Button>
-      </Box>
+    <Container
+      maxWidth="lg"
+      // sx={{ mt: 4 }}
+      sx={{
+        width: "100%",
+        maxWidth: "800px",
+        m: "0 auto",
+        mt: 4,
+      }}>
+      <Box sx={{ display: 'flex', flexDirection: "row" }}>
 
-      <Box sx={{ display: 'flex' }}>
         <TreeView
           checkboxSelection={true}
           multiSelect={true}
@@ -126,6 +126,10 @@ const TreeMarkdownView = ({ folderPath, onBack }) => {
           onSelectedItemsChange={handleNodeSelect}
           sx={{ flexGrow: 1, maxWidth: 400, marginRight: 3 }}
         >
+          <Button variant="outlined" onClick={onBack} sx={{ mb: 3 }}>
+            &lt;-- Back
+          </Button>
+          <br />
           {treeData ? renderTree(treeData) : null}
         </TreeView>
 

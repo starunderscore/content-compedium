@@ -58,7 +58,7 @@ Here is the typing text for the second slide.  It could be a fact, a quote, code
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
-    p: 4,
+    p: 2,
   };
 
 
@@ -70,33 +70,15 @@ Here is the typing text for the second slide.  It could be a fact, a quote, code
       aria-describedby="ai-prompt-modal-description"
     >
       <Box sx={modalStyle}>
-        <Typography id="ai-prompt-modal-title" variant="h6" component="h2">
-          AI Prompt for Slop Press Typing Games
-        </Typography>
-        <Typography sx={{ mt: 2, mb: 1 }}>
-          Copy and paste this prompt into your AI chat assistant (like ChatGPT or Gemini) to generate Markdown content for Slop Press typing games:
-        </Typography>
-
-        <Box sx={{
-          backgroundColor:
-            theme.palette.mode === "dark" ? theme.palette.grey[900] : theme.palette.grey[100],
-          p: 2,
-          pt: 5,
-          borderRadius: 1,
-          position: 'relative',
-        }}> {/* Relative positioning for IconButton */}
-          <Typography component="pre" style={{ overflowX: 'auto', whiteSpace: 'pre-wrap' }}>
-            {aiPromptText}
+        <Box sx={{ mt: 4, color: 'textSecondary' }}>
+          <Typography id="ai-prompt-modal-title" variant="h4" component="h2" sx={{ marginBottom: "15px" }}>
+            Instructions
           </Typography>
-          <Tooltip title="Copy Prompt to Clipboard">
-            <IconButton
-              onClick={handleCopyPrompt}
-              sx={{ position: 'absolute', top: 5, right: 5, color: 'primary.main' }}
-              aria-label="copy prompt"
-            >
-              <FileCopyIcon />
-            </IconButton>
-          </Tooltip>
+          <Typography variant="body2">
+            Use "Browse Folders..." to select your project's root folder.
+            <br />
+            Content Compendium will remember your last selected folder.
+          </Typography>
         </Box>
 
         <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
