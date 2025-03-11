@@ -1,15 +1,15 @@
-// pages/_app.jsx
+// pages/_app.jsx (Modified to set data-theme attribute on body)
 import React, { useState, useMemo, useEffect, createContext, useContext } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-// import "../styles/globals.css"; // if you have any global CSS
+import "./globals.css"; // if you have any global CSS
 
 // Create a context for theme settings
 const ThemeContext = createContext({
   mode: "light",
   syncWithOS: false,
-  toggleTheme: () => {},
-  toggleSyncWithOS: () => {},
+  toggleTheme: () => { },
+  toggleSyncWithOS: () => { },
 });
 
 // Export a hook to use this context
@@ -49,7 +49,12 @@ function MyApp({ Component, pageProps }) {
     if (!syncWithOS && typeof window !== "undefined") {
       localStorage.setItem("slop-press-theme-mode", mode);
     }
-  }, [mode, syncWithOS]);
+    // Set data-theme attribute on body - MOVE THIS HERE so it updates with mode change!
+    if (typeof document !== 'undefined') { // ✅ Ensure we are in browser environment
+      document.body.setAttribute('data-theme', mode); // ✅ Set data-theme on body
+    }
+
+  }, [mode, syncWithOS]); // ✅ Add mode and syncWithOS as dependencies to useEffect
 
   // Persist syncWithOS value
   useEffect(() => {
@@ -93,7 +98,7 @@ function MyApp({ Component, pageProps }) {
           MuiCard: {
             styleOverrides: {
               root: {
-                backgroundColor: mode === "dark" ? "#ccc" : "#333",
+                backgroundColor: mode === "dark" ? "#ccc" : "#333", // These colors seem inverted for Card in dark mode?
                 color: "#fff",
                 transition: "background-color 0.3s ease, color 0.3s ease",
               },
@@ -103,6 +108,14 @@ function MyApp({ Component, pageProps }) {
       }),
     [mode]
   );
+
+  // Set data-theme attribute on body - MOVE THIS useEffect here and make it depend on 'mode'
+  useEffect(() => {
+    if (typeof document !== 'undefined') { // Ensure we are in browser environment
+      document.body.setAttribute('data-theme', mode); // Set data-theme on body
+    }
+  }, [mode]); // ✅ Run this effect whenever 'mode' changes
+
 
   return (
     <ThemeContext.Provider value={{ mode, syncWithOS, toggleTheme, toggleSyncWithOS }}>

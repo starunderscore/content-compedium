@@ -1,0 +1,70 @@
+/* General Styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier New', Courier, monospace;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Smooth transitions for theme changes */
+}
+
+/* Light Theme */
+[data-theme="light"] body {
+  background-color: #ffffff;
+  color: #000000;
+  /* Default text color */
+}
+
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3 {
+  color: #333333;
+  /* Rich dark gray for headers */
+}
+
+[data-theme="light"] a {
+  color: #0073e6;
+  /* Vibrant blue for links */
+  text-decoration: none;
+}
+
+[data-theme="light"] a:hover {
+  color: #005bb5;
+  /* Darker blue for hover */
+  text-decoration: underline;
+}
+
+[data-theme="light"] footer {
+  border-top: 2px solid #cccccc;
+  color: #666666;
+}
+
+/* Dark Theme */
+[data-theme="dark"] body {
+  background-color: #121212;
+  color: #e0e0e0;
+  /* Softer white for text to reduce eye strain */
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3 {
+  color: #f5f5f5;
+  /* Bright white for headers */
+}
+
+[data-theme="dark"] a {
+  color: #80d8ff;
+  /* Light cyan for links */
+  text-decoration: none;
+}
+
+[data-theme="dark"] a:hover {
+  color: #40c4ff;
+  /* Brighter cyan for hover effect */
+  text-decoration: underline;
+}
+
+[data-theme="dark"] footer {
+  border-top: 2px solid #333333;
+  color: #888888;
+}

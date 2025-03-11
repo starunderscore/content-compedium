@@ -11,5 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getIgnoreSettings: () => ipcRenderer.invoke('get-ignore-settings'), // ✅ Expose getIgnoreSettings
   saveIgnoreSettings: (settings) => ipcRenderer.invoke('save-ignore-settings', settings), // ✅ Expose saveIgnoreSettings
   saveLastFolderPath: (folderPath) => ipcRenderer.invoke('save-last-folder-path', folderPath), // ✅ EXPOSE saveLastFolderPath HERE
-  clearLastFolderPath: () => ipcRenderer.invoke('clear-last-folder-path') // ✅ EXPOSE clearLastFolderPath HERE
+  clearLastFolderPath: () => ipcRenderer.invoke('clear-last-folder-path'), // ✅ EXPOSE clearLastFolderPath HERE
+  openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url), // ✅ Expose openExternalLink
+  on: (channel, callback) => ipcRenderer.on(channel, callback), // ✅ Expose 'on' function
+  off: (channel, callback) => ipcRenderer.removeListener(channel, callback), // ✅ Expose 'off' function
 });

@@ -1,6 +1,6 @@
-// components/TreeMarkdownView.jsx
+// components/TreeMarkdownView.jsx (Corrected - fetchTree with useCallback)
+// blah
 import React, { useState, useEffect, useCallback } from 'react';
-import path from 'path';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -15,21 +15,71 @@ const TreeMarkdownView = ({ folderPath, onBack }) => {
   const [selectedFilesContent, setSelectedFilesContent] = useState([]); // ✅ State for array of file contents
   // const [selectedNode, setSelectedNode] = useState(null); // ✅ Removed selectedNode state - not needed for multi-select
 
-  useEffect(() => {
-    const fetchTree = async () => {
-      try {
-        if (!folderPath) return;
+  // ✅ Define fetchTree using useCallback - OUTSIDE the useEffect
+  const fetchTree = useCallback(async () => {
+    try {
+      if (!folderPath) return;
 
-        console.log("[Renderer] Requesting folder tree for:", folderPath);
-        const data = await window.electronAPI.getFolderTree(folderPath);
-        console.log("[Renderer] Received folder tree data:", data);
-        setTreeData(data);
-      } catch (error) {
-        console.error("Failed to fetch folder tree:", error);
+      console.log("[Renderer] Requesting folder tree for:", folderPath);
+      const data = await window.electronAPI.getFolderTree(folderPath);
+      console.log("[Renderer] Received folder tree data:", data);
+      setTreeData(data);
+    } catch (error) {
+      console.error("Failed to fetch folder tree:", error);
+    }
+  }, [folderPath]); // ✅ Dependency array for useCallback - include folderPath
+
+  useEffect(() => {
+    fetchTree(); // ✅ Call fetchTree here - it's now defined outside
+
+    // ✅ Setup IPC listener for 'file-changed' event
+    const handleFileChange = async (event, fileChangeEvent) => {
+      console.log("[Renderer] Received file-changed event:", fileChangeEvent);
+      const { eventType, filePath } = fileChangeEvent;
+
+      if (eventType === 'change') { // Only handle 'change' events for now
+        console.log(`[Renderer] File changed, refreshing content: ${filePath}`);
+        try {
+          const updatedContent = await window.electronAPI.getFileContent(filePath); // Re-fetch content
+          console.log("[Renderer] Refreshed content for:", filePath);
+
+          // ✅ Update selectedFilesContent to reflect the changed file content
+          setSelectedFilesContent(prevFilesContent => {
+            return prevFilesContent.map(fileData => {
+              if (fileData.filePath === filePath) {
+                return { ...fileData, content: updatedContent }; // Update content for changed file
+              }
+              return fileData; // Keep other file data unchanged
+            });
+          });
+          console.log("[Renderer] selectedFilesContent updated with refreshed file.");
+
+        } catch (error) {
+          console.error("[Renderer] Error refreshing file content:", error);
+        }
+      } else if (eventType === 'add') {
+        console.log(`[Renderer] File added: ${filePath} - You might want to refresh the tree or handle addition.`);
+        // Optionally refresh the folder tree here if you want newly added files to appear immediately
+        fetchTree(); // Re-fetch the tree to include new files (simplest approach for now)
+
+      } else if (eventType === 'unlink') {
+        console.log(`[Renderer] File removed: ${filePath} - You might want to refresh the tree or handle removal.`);
+        // Optionally refresh the folder tree and/or remove content if it was being displayed
+        fetchTree(); // Re-fetch the tree to update file list (simplest for now)
+        setSelectedFilesContent(prevFilesContent => // Remove content of deleted file if it was selected
+          prevFilesContent.filter(fileData => fileData.filePath !== filePath)
+        );
       }
     };
-    fetchTree();
-  }, [folderPath]);
+
+    window.electronAPI.on('file-changed', handleFileChange); // ✅ Register IPC listener
+
+    return () => {
+      window.electronAPI.off('file-changed', handleFileChange); // ✅ Unregister listener on component unmount
+    };
+
+
+  }, [folderPath, setSelectedFilesContent, fetchTree]); // ✅ useEffect dependency array NOW includes fetchTree
 
   const renderTree = (nodes) => {
     console.log("[renderTree] Node Name:", nodes.name, " - Node Type:", nodes.type);
@@ -105,13 +155,11 @@ const TreeMarkdownView = ({ folderPath, onBack }) => {
 
   return (
     <Container
-      maxWidth="lg"
-      // sx={{ mt: 4 }}
       sx={{
         width: "100%",
-        maxWidth: "800px",
         m: "0 auto",
         mt: 4,
+        p: 0,
       }}>
       <Box sx={{ display: 'flex', flexDirection: "row" }}>
 
@@ -127,9 +175,9 @@ const TreeMarkdownView = ({ folderPath, onBack }) => {
           sx={{ flexGrow: 1, maxWidth: 400, marginRight: 3 }}
         >
           {/* <Button variant="outlined" onClick={onBack} sx={{ mb: 3 }}>
-            &lt;-- Back
-          </Button>
-          <br /> */}
+						&lt;-- Back
+					</Button>
+					<br /> */}
           {treeData ? renderTree(treeData) : null}
         </TreeView>
 
@@ -142,4 +190,4 @@ const TreeMarkdownView = ({ folderPath, onBack }) => {
   );
 };
 
-export default TreeMarkdownView;
+export default TreeMarkdownView

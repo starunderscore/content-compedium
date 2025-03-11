@@ -1,10 +1,12 @@
 // electron/main.js (Updated with clearLastFolderPath function)
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron'); // ✅ IMPORT SHELL
 const path = require('path');
 const fs = require('fs');
+const chokidar = require('chokidar'); // ✅ Import chokidar
 
 let mainWindow;
 let nodeIdCounter = 0;
+let folderWatcher = null; // ✅ Variable to hold the chokidar watcher instance
 
 const LAST_FOLDER_PATH_FILE = path.join(app.getPath('userData'), 'lastFolderPath.txt');
 const RECENT_FOLDERS_FILE = path.join(app.getPath('userData'), 'recentFolders.json');
@@ -236,8 +238,48 @@ app.whenReady().then(() => {
     console.log(`[MainProcess]: Received request to get folder tree for: ${folderPath}`);
     const tree = buildDirectoryTree(folderPath);
     console.log("Directory Tree Data with File Paths:", JSON.stringify(tree, null, 2));
-    return tree;
+    // return tree;
+
+    if (folderPath) {
+      console.log(`[MainProcess]: Starting file watching for folder: ${folderPath}`);
+      // ✅ Start file watching using chokidar
+      if (folderWatcher) { // Stop any existing watcher if it exists
+        folderWatcher.close();
+        folderWatcher = null;
+        console.log("[MainProcess]: Previous watcher closed.");
+      }
+
+      folderWatcher = chokidar.watch(folderPath, { // ✅ Start watching the folder path
+        ignored: /(^|[/\\])\../, // ignore dotfiles
+        persistent: true,
+        ignoreInitial: true // Don't trigger events for initial files/folders
+      });
+
+      folderWatcher
+        .on('add', filePath => {
+          console.log(`[MainProcess:Chokidar] File added: ${filePath}`);
+          // ✅ Send IPC message to renderer to refresh file content (ADD case)
+          event.sender.send('file-changed', { eventType: 'add', filePath }); // Send to the window that requested the tree
+        })
+        .on('change', filePath => {
+          console.log(`[MainProcess:Chokidar] File changed: ${filePath}`);
+          // ✅ Send IPC message to renderer to refresh file content (CHANGE case)
+          event.sender.send('file-changed', { eventType: 'change', filePath }); // Send to the window that requested the tree
+        })
+        .on('unlink', filePath => {
+          console.log(`[MainProcess:Chokidar] File removed: ${filePath}`);
+          // ✅ Send IPC message to renderer to refresh file content (DELETE/UNLINK case)
+          event.sender.send('file-changed', { eventType: 'unlink', filePath }); // Send to the window that requested the tree
+        })
+        .on('error', error => console.log(`[MainProcess:Chokidar] Watcher error: ${error}`))
+        .on('ready', () => console.log('[MainProcess:Chokidar] Initial scan complete. Ready for changes'));
+
+      return treeData; // Return the treeData as before
+    } else {
+      return null; // Or handle no folder path as before
+    }
   });
+
 
   ipcMain.handle('show-open-dialog-for-folder', async (event) => {
     const result = await dialog.showOpenDialog(mainWindow, {
@@ -325,6 +367,17 @@ app.whenReady().then(() => {
     console.log("[MainProcess]: Received request to clear last folder path.");
     clearLastFolderPath(); // Call the clearLastFolderPath function
   });
+
+  // ✅ NEW IPC Handler for OPENING EXTERNAL LINKS in default browser
+  ipcMain.handle('open-external-link', async (event, url) => {
+    if (!url) {
+      console.error("[MainProcess]: No URL provided to open-external-link handler");
+      return;
+    }
+    console.log(`[MainProcess]: Opening external link in default browser: ${url}`);
+    shell.openExternal(url); // ✅ Use shell.openExternal to open in default browser
+  });
+
 
 
   app.on('activate', function () {
