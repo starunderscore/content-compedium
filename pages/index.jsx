@@ -1,16 +1,13 @@
-// pages/index.jsx (Refined Layout - Theme Consistency & Polish)
+// pages/index.jsx (Refined Layout - Theme Consistency & Polish - with Folder Selection)
 import React, { useState, useCallback, useEffect } from "react";
 import Layout from "../components/Layout";
 import TopAppBar from "../components/TopAppBar/index";
-import FolderSelectionView from "../components/FolderSelectionView";
-import TreeMarkdownView from "../components/TreeMarkdownView";
-import SettingsView from "../components/SettingsView";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material";
-import WorkspaceSidebar from "../components/WorkspaceSidebar";
 import ContentViewTabs from "../components/ContentViewTabs";
-import TreeViewWorkspaceSidebar from "../components/TreeViewWorkspaceSiderbar";
+import Button from "@mui/material/Button"; // Import Button
+import TreeViewWorkspaceSidebar from "../components/TreeViewWorkspaceSidebarToolbar";
 
 export default function HomePage() {
   const theme = useTheme(); // ✅ Get the theme object
@@ -18,12 +15,28 @@ export default function HomePage() {
   const [selectedFolderPath, setSelectedFolderPath] = useState(null);
   const [isFolderSelected, setIsFolderSelected] = useState(false);
   const [isSettingsViewActive, setIsSettingsViewActive] = useState(false);
+  const [workspaceTreeData, setWorkspaceTreeData] = useState(null); // State for dynamic tree data
 
-  const handleFolderSelect = useCallback((folderPath) => {
+  const handleFolderSelect = useCallback(async (folderPath) => {
     setSelectedFolderPath(folderPath);
     setIsFolderSelected(true);
     setIsSettingsViewActive(false);
-  }, []);
+    try {
+      const treeData = await window.electronAPI.getWorkspaceTree(folderPath);
+      setWorkspaceTreeData(treeData);
+    } catch (error) {
+      console.error("Error fetching workspace tree:", error);
+      // Handle error appropriately (e.g., display a message to the user)
+    }
+  },);
+
+  const handleOpenFolderDialog = useCallback(async () => {
+    const result = await window.electronAPI.showOpenDialog();
+    if (result && result.filePaths && result.filePaths.length > 0) {
+      handleFolderSelect(result.filePaths[0]);
+      window.electronAPI.saveLastFolderPath(result.filePaths[0]);
+    }
+  }, [handleFolderSelect]);
 
   useEffect(() => {
     const loadLastFolderPath = async () => {
@@ -45,18 +58,20 @@ export default function HomePage() {
     setIsFolderSelected(false);
     setSelectedFolderPath(null);
     setIsSettingsViewActive(false);
+    setWorkspaceTreeData(null); // Clear tree data
     window.electronAPI.clearLastFolderPath();
-  }, []);
+  },);
 
   const handleSettingsClick = useCallback(() => {
     setIsSettingsViewActive(true);
     setIsFolderSelected(false);
     setSelectedFolderPath(null);
-  }, []);
+    setWorkspaceTreeData(null); // Clear tree data
+  },);
 
   const handleBackToHomeFromSettings = useCallback(() => {
     setIsSettingsViewActive(false);
-  }, []);
+  },);
 
   return (
     <Layout>
@@ -72,23 +87,23 @@ export default function HomePage() {
         <Box sx={{
           width: 300,
           borderRight: `1px solid ${theme.palette.divider}`, // ✅ Theme-aware divider
-          bgcolor: theme.palette.background.paper,        // ✅ Theme-aware background for 'paper' surfaces
-          color: theme.palette.text.primary,             // ✅ Theme-aware primary text color
-          overflowY: 'auto',                              // ✅ Add scroll if sidebar content overflows
+          bgcolor: theme.palette.background.paper,          // ✅ Theme-aware background for 'paper' surfaces
+          color: theme.palette.text.primary,              // ✅ Theme-aware primary text color
+          overflowY: 'auto',                               // ✅ Add scroll if sidebar content overflows
         }}>
-          <TreeViewWorkspaceSidebar /> {/* ✅ Integrate WorkspaceSidebar component */}
+          <TreeViewWorkspaceSidebar treeData={workspaceTreeData} /> {/* ✅ Pass dynamic tree data as prop */}
         </Box>
 
         {/* --- Right Content View (Tabs) - REFINED STYLING --- */}
         <Box sx={{
           flexGrow: 1,
-          bgcolor: theme.palette.background.default,      // ✅ Theme-aware default background
-          color: theme.palette.text.primary,             // ✅ Theme-aware primary text color
-          edisplay: 'flex',                               // ✅ Use Flexbox for vertical centering
+          bgcolor: theme.palette.background.default,        // ✅ Theme-aware default background
+          color: theme.palette.text.primary,              // ✅ Theme-aware primary text color
+          display: 'flex',                                // ✅ Use Flexbox for vertical centering
           flexDirection: 'column',                        // ✅ Stack content vertically
           alignItems: 'center',                           // ✅ Center content horizontally
-          justifyContent: 'flex-start',                  // ✅ Align content to the top in content area
-          overflowY: 'auto',                              // ✅ Add scroll if content overflows
+          justifyContent: 'flex-start',                   // ✅ Align content to the top in content area
+          overflowY: 'auto',                               // ✅ Add scroll if content overflows
         }}>
           <ContentViewTabs /> {/* ✅ Integrate ContentViewTabs component */}
 
@@ -98,14 +113,11 @@ export default function HomePage() {
               <Typography variant="subtitle1" color="textSecondary"> {/* ✅ Use 'textSecondary' for softer welcome text */}
                 Welcome! Create or Open a Workspace to begin.
               </Typography>
-              {/* Buttons for Create/Open Workspace will go here - ADD THESE NEXT */}
+              <Button variant="contained" color="primary" onClick={handleOpenFolderDialog} sx={{ mt: 2 }}>
+                Open Workspace
+              </Button>
+              {/* Buttons for Create Workspace will go here - ADD THESE NEXT */}
             </Box>
-          )}
-          {isSettingsViewActive && (
-            <SettingsView />
-          )}
-          {isFolderSelected && (
-            <TreeMarkdownView folderPath={selectedFolderPath} onBack={handleBackToFolderSelect} />
           )}
         </Box>
 

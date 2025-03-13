@@ -2,10 +2,6 @@
 import React, { useContext, useState, useRef } from 'react'; // ✅ Import useState and useRef
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
