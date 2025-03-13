@@ -1,130 +1,68 @@
-// pages/_app.jsx (Modified to set data-theme attribute on body)
-import React, { useState, useMemo, useEffect, createContext, useContext } from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import "./globals.css"; // if you have any global CSS
+// pages/_app.js (Theme Context and Theme Toggling - Version 9)
+import React, { useState, useMemo, createContext } from 'react'; // ✅ Import createContext and useMemo
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline'; // For global styles reset
 
-// Create a context for theme settings
-const ThemeContext = createContext({
-  mode: "light",
-  syncWithOS: false,
-  toggleTheme: () => { },
-  toggleSyncWithOS: () => { },
+// ✅ 1. Create a Theme Context
+export const ThemeModeContext = createContext({
+    toggleTheme: () => { }, // Placeholder toggle function
+    mode: 'light',           // Default mode
 });
 
-// Export a hook to use this context
-export const useThemeSettings = () => useContext(ThemeContext);
-
 function MyApp({ Component, pageProps }) {
-  const [mode, setMode] = useState("light");
-  const [syncWithOS, setSyncWithOS] = useState(false);
+    // ✅ 2. Manage Theme Mode State
+    const [mode, setMode] = useState('light'); // 'light' | 'dark' - Initial theme mode
 
-  // On mount, load stored values
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedMode = localStorage.getItem("slop-press-theme-mode");
-      const storedSync = localStorage.getItem("slop-press-sync-with-os");
-      if (storedSync !== null) {
-        setSyncWithOS(storedSync === "true");
-      }
-      if (storedMode) {
-        setMode(storedMode);
-      }
-    }
-  }, []);
+    // ✅ 3. Create Theme Object based on Mode (useMemo for performance)
+    const theme = useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode, // 'light' or 'dark' will be dynamically set
+                    ...(mode === 'light' ? { // Light mode palette
+                        // Light mode specific palette values can go here (if needed)
+                    } : { // Dark mode palette
+                        // Dark mode specific palette values can go here (if needed)
+                        background: {          // Dark mode background overrides (example - adjust as needed)
+                            default: '#121212', // Slightly darker default background for dark mode
+                            paper: '#1e1e1e',   // Slightly darker paper background for dark mode
+                        },
+                    }),
+                    primary: { // Example primary color - adjust to your brand color
+                        main: '#3f51b5',
+                    },
+                    secondary: { // Example secondary color - adjust to your brand color
+                        main: '#f50057',
+                        dark: '#c51162',      // Example dark variant of secondary
+                    },
+                    // divider: 'rgba(255, 255, 255, 0.12)', // Example divider color override - adjust as needed for dark mode
+                },
+            }),
+        [mode], // Re-create theme when 'mode' changes
+    );
 
-  // When OS sync is enabled, update mode based on OS preference.
-  useEffect(() => {
-    if (syncWithOS && typeof window !== "undefined") {
-      const mql = window.matchMedia("(prefers-color-scheme: dark)");
-      const updateMode = () => setMode(mql.matches ? "dark" : "light");
-      updateMode(); // set initial value
-      mql.addEventListener("change", updateMode);
-      return () => mql.removeEventListener("change", updateMode);
-    }
-  }, [syncWithOS]);
 
-  // Persist mode (if not syncing with OS)
-  useEffect(() => {
-    if (!syncWithOS && typeof window !== "undefined") {
-      localStorage.setItem("slop-press-theme-mode", mode);
-    }
-    // Set data-theme attribute on body - MOVE THIS HERE so it updates with mode change!
-    if (typeof document !== 'undefined') { // ✅ Ensure we are in browser environment
-      document.body.setAttribute('data-theme', mode); // ✅ Set data-theme on body
-    }
-
-  }, [mode, syncWithOS]); // ✅ Add mode and syncWithOS as dependencies to useEffect
-
-  // Persist syncWithOS value
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("slop-press-sync-with-os", syncWithOS);
-    }
-  }, [syncWithOS]);
-
-  // Toggle functions
-  const toggleTheme = () => {
-    // If syncing with OS, disable it on manual toggle.
-    if (syncWithOS) {
-      setSyncWithOS(false);
-    }
-    setMode((prev) => (prev === "light" ? "dark" : "light"));
-  };
-
-  const toggleSyncWithOS = () => {
-    setSyncWithOS((prev) => !prev);
-  };
-
-  // Create a theme based on our state.
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode,
-          background: {
-            default: mode === "dark" ? "#121212" : "#fff",
-            paper: mode === "dark" ? "#121212" : "#fff",
-          },
-          text: {
-            primary: mode === "dark" ? "#fff" : "#000",
-          },
-          grey: {
-            200: "#ccc", // for example
-            800: "#333", // for example
-          },
-        },
-        components: {
-          MuiCard: {
-            styleOverrides: {
-              root: {
-                backgroundColor: mode === "dark" ? "#ccc" : "#333", // These colors seem inverted for Card in dark mode?
-                color: "#fff",
-                transition: "background-color 0.3s ease, color 0.3s ease",
-              },
+    // ✅ 4. Theme Toggle Function (using useCallback for optimization - though not strictly necessary here)
+    const themeContextValue = useMemo(
+        () => ({
+            toggleTheme: () => {
+                setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light')); // Toggle mode
             },
-          },
-        },
-      }),
-    [mode]
-  );
-
-  // Set data-theme attribute on body - MOVE THIS useEffect here and make it depend on 'mode'
-  useEffect(() => {
-    if (typeof document !== 'undefined') { // Ensure we are in browser environment
-      document.body.setAttribute('data-theme', mode); // Set data-theme on body
-    }
-  }, [mode]); // ✅ Run this effect whenever 'mode' changes
+            mode, // Current theme mode ('light' or 'dark') - Make 'mode' available in context
+        }),
+        [mode] // Re-create context value when 'mode' changes
+    );
 
 
-  return (
-    <ThemeContext.Provider value={{ mode, syncWithOS, toggleTheme, toggleSyncWithOS }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Component {...pageProps} />
-      </ThemeProvider>
-    </ThemeContext.Provider>
-  );
+    return (
+        // ✅ 5. Provide Theme Context and ThemeProvider
+        <ThemeModeContext.Provider value={themeContextValue}>
+            <ThemeProvider theme={theme}>
+                <CssBaseline /> {/* Apply Material UI's reset styles */}
+                <Component {...pageProps} /> {/* Render your application components */}
+            </ThemeProvider>
+        </ThemeModeContext.Provider>
+    );
 }
 
 export default MyApp;
