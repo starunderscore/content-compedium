@@ -1,6 +1,6 @@
 // components/treesidebar/TreeViewWorkspaceItem.jsx
 import React from 'react';
-import { ListItem, ListItemButton, ListItemText, Collapse, List, IconButton, Box, Checkbox, Menu, MenuItem, Divider } from '@mui/material';
+import { ListItem, ListItemButton, ListItemText, Collapse, List, IconButton, Box, Checkbox, Menu, MenuItem, Divider, Typography } from '@mui/material'; // Import Typography
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -26,7 +26,7 @@ const TreeViewWorkspaceItem = ({
   handleUncheckAllInWorkspace,
 }) => {
   const theme = useTheme();
-  const isExpanded = expandedItems.includes(item.name) && item.visible !== false;
+  const isExpanded = expandedItems ? expandedItems.includes(item.id) : false;
   const hasChildren = item.children && item.children.length > 0;
   const isWorkspace = item.type === 'workspace';
   const isFolder = item.type === 'folder';
@@ -46,7 +46,7 @@ const TreeViewWorkspaceItem = ({
         aria-label="toggle workspace visibility"
         size="small"
         sx={{ mr: 0.5, ml: 1, opacity: item.visible ? 1 : 0.5 }}
-        onClick={() => handleVisibilityToggle(item.name)}
+        onClick={() => handleVisibilityToggle(item.id, !item.visible)} // Pass workspace ID
       >
         <VisibilityIcon color="action" fontSize="small" />
       </IconButton>
@@ -62,10 +62,10 @@ const TreeViewWorkspaceItem = ({
   }
 
   return (
-    <React.Fragment key={item.name}>
+    <React.Fragment key={item.id}>
       <ListItem disablePadding>
         <ListItemButton
-          onClick={() => hasChildren && item.visible !== false ? handleItemClick(item.name) : {}}
+          onClick={() => hasChildren ? handleItemClick(item.id) : {}} // Use item.id for toggling expansion
           sx={{ pl: indent, pr: 2, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
           disabled={item.visible === false}
         >
@@ -104,7 +104,7 @@ const TreeViewWorkspaceItem = ({
                   }}
                 >
                   <MenuItem onClick={handleWorkspaceMenuClose}>Add New Folder</MenuItem>
-                  <MenuItem onClick={handleWorkspaceMenuClose}>Save Checkpoint</MenuItem>
+                  <MenuItem disabled={!item.children?.find(child => child.name === 'Folders')?.children?.length > 0} onClick={handleWorkspaceMenuClose}>Save Checkpoint</MenuItem> {/* Conditionally disabled */}
                   <Divider />
                   <MenuItem onClick={() => handleCheckAllInWorkspace(item.name)}>Check Everything</MenuItem>
                   <MenuItem onClick={() => handleUncheckAllInWorkspace(item.name)}>Uncheck Everything</MenuItem>
@@ -136,25 +136,33 @@ const TreeViewWorkspaceItem = ({
           </Box>
         </ListItemButton>
       </ListItem>
-      {hasChildren && item.visible !== false && (
+      {hasChildren && (
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {item.children.map((child) => (
-              <TreeViewWorkspaceItem
-                key={child.name}
-                item={child}
-                level={level + 1}
-                parentItem={item}
-                expandedItems={expandedItems}
-                handleItemClick={handleItemClick}
-                handleVisibilityToggle={handleVisibilityToggle}
-                workspaceMenuAnchorEl={workspaceMenuAnchorEl}
-                handleWorkspaceMenuOpen={handleWorkspaceMenuOpen}
-                handleWorkspaceMenuClose={handleWorkspaceMenuClose}
-                handleRemoveFolder={handleRemoveFolder}
-                handleCheckAllInWorkspace={handleCheckAllInWorkspace}
-                handleUncheckAllInWorkspace={handleUncheckAllInWorkspace}
-              />
+              child.type === 'folder' && child.children && child.children.length === 0 ? (
+                <ListItem key={`${child.id}-empty`} disablePadding sx={{ pl: indent + 2 }}>
+                  <Typography variant="body2" color="textSecondary">
+                    No items.
+                  </Typography>
+                </ListItem>
+              ) : (
+                <TreeViewWorkspaceItem
+                  key={child.id || child.name} // Use child.id if available, otherwise name
+                  item={child}
+                  level={level + 1}
+                  parentItem={item}
+                  expandedItems={expandedItems}
+                  handleItemClick={handleItemClick}
+                  handleVisibilityToggle={handleVisibilityToggle}
+                  workspaceMenuAnchorEl={workspaceMenuAnchorEl}
+                  handleWorkspaceMenuOpen={handleWorkspaceMenuOpen}
+                  handleWorkspaceMenuClose={handleWorkspaceMenuClose}
+                  handleRemoveFolder={handleRemoveFolder}
+                  handleCheckAllInWorkspace={handleCheckAllInWorkspace}
+                  handleUncheckAllInWorkspace={handleUncheckAllInWorkspace}
+                />
+              )
             ))}
           </List>
         </Collapse>
